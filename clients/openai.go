@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,7 +14,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-
+	
 	"github.com/BalanceBalls/nekot/config"
 	"github.com/BalanceBalls/nekot/util"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,7 +24,7 @@ type OpenAiClient struct {
 	apiUrl        string
 	systemMessage string
 	provider      util.ApiProvider
-	client        http.Client
+	client        *http.Client
 }
 
 type OpenAIConversationTurn struct {
@@ -101,7 +102,7 @@ func NewOpenAiClient(apiUrl, systemMessage string) *OpenAiClient {
 		provider:      provider,
 		apiUrl:        apiUrl,
 		systemMessage: systemMessage,
-		client:        http.Client{},
+		client:        &http.Client{},
 	}
 }
 
@@ -139,7 +140,14 @@ func (c OpenAiClient) RequestCompletion(
 			util.Slog.Error("No config found in a context")
 			panic("No config found in context")
 		}
-
+		
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: config.SkipSSLVerification,
+			},
+		}
+		c.client.Transport = tr
+		
 		body, err := c.constructCompletionRequestPayload(chatMsgs, *config, modelSettings)
 		if err != nil {
 			return util.MakeErrorMsg(err.Error())
@@ -342,7 +350,7 @@ func (c OpenAiClient) getOpenAiAPI(
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 
 	client := &http.Client{}
-	return client.Do(req)
+	return c.client.Do(req)
 }
 
 func (c OpenAiClient) postOpenAiAPI(
@@ -362,7 +370,7 @@ func (c OpenAiClient) postOpenAiAPI(
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 
 	client := &http.Client{}
-	return client.Do(req)
+	rreturn c.client.Do(req)
 }
 
 func processModelsListResponse(resp *http.Response) util.ProcessModelsResponse {
