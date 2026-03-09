@@ -53,6 +53,7 @@ type Config struct {
 	MaxAttachmentSizeMb             int              `json:"maxAttachmentSizeMb"`
 	IncludeReasoningTokensInContext *bool            `json:"includeReasoningTokensInContext"`
 	SessionExportDir                string           `json:"sessionExportDir"`
+	SkipSSLVerification             bool             `json:"skipSSLVerification"`
 }
 
 type StartupFlags struct {
