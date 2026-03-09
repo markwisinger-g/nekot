@@ -349,7 +349,6 @@ func (c OpenAiClient) getOpenAiAPI(
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 
-	client := &http.Client{}
 	return c.client.Do(req)
 }
 
@@ -369,8 +368,7 @@ func (c OpenAiClient) postOpenAiAPI(
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 
-	client := &http.Client{}
-	rreturn c.client.Do(req)
+	return c.client.Do(req)
 }
 
 func processModelsListResponse(resp *http.Response) util.ProcessModelsResponse {
